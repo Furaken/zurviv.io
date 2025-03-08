@@ -15,8 +15,13 @@ function scoring(rp, k, dmg) {
 }
 
 result.forEach(match => {
+    let alreadyScanned = []
     match.forEach(player => {
-        if (player[1] == "PLAYER" || !registered.includes(player[1])) return
+        if (player[1] == "PLAYER") return
+        if (!registered.includes(player[1])) return
+        if (alreadyScanned.includes(player[1])) return
+        alreadyScanned.push(player[1])
+
         let thisRp = rankPoints[player[0]]
         let thisScore = scoring(thisRp == true ? thisRp : 0, player[2], player[3])
         if (!data[player[1]]) data[player[1]] = thisScore
@@ -54,6 +59,7 @@ function generateLeaderboard(data) {
 
     tableHTML += `</tbody></table>`
 
+    console.log(sortedData)
     console.log(tableHTML)
 }
 

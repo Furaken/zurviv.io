@@ -25,45 +25,34 @@ result.forEach(match => {
 })
 
 function generateLeaderboard(data) {
-    let sortedData = Object.entries(data).sort((a, b) => b[1] - a[1])
-    let table = document.createElement("table")
-    table.style.borderCollapse = "collapse"
-    table.style.width = "50%"
-    table.style.margin = "20px auto"
-    table.style.fontFamily = "Arial, sans-serif"
-    table.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.1)"
+    const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1])
 
-    let thead = document.createElement("thead");
-    thead.innerHTML = `
-        <tr style="background: #4CAF50; color: white;">
-            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Rank</th>
-            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Player Name</th>
-            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Score</th>
-        </tr>
-    `
+    let tableHTML = `
+        <table style="border-collapse: collapse; width: 60%; margin: 20px auto; font-family: Arial, sans-serif; 
+                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); background: white;">
+            <thead>
+                <tr style="background: #4CAF50; color: white;">
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Rank</th>
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Player Name</th>
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Score</th>
+                </tr>
+            </thead>
+            <tbody>`
 
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody")
     let rank = 1
-
     sortedData.forEach(([player, score]) => {
-        const row = document.createElement("tr");
-        row.style.background = rank % 2 === 0 ? "#f2f2f2" : "#fff"
-        row.style.border = "1px solid #ddd"
-
-        row.innerHTML = `
-            <td style="padding: 10px; text-align: center; border: 1px solid #ddd; font-weight: bold;">${rank}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${player}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${score.toFixed(2)}</td>
-        `
-
-        tbody.appendChild(row)
+        const rowColor = rank % 2 === 0 ? "#f2f2f2" : "#ffffff"
+        tableHTML += `
+            <tr style="background: ${rowColor}; border: 1px solid #ddd;">
+                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; font-weight: bold;">${rank}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${player}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${score.toFixed(2)}</td>
+            </tr>`
         rank++
     })
+    tableHTML += `</tbody></table>`
 
-    table.appendChild(tbody)
-    console.log(table)
+    console.log(tableHTML)
 }
 
 generateLeaderboard(data)

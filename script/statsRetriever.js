@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         survev.io | Killfeed logger & Stats retriever
 // @namespace    Furaken
-// @version      1.0.0
+// @version      1.1
 // @description  Hm
 // @author       sk
 // @match        https://zurviv.io/*
-// @grant        unsafeWindow
 // ==/UserScript==
 
 function merge(a, b) {
@@ -29,29 +28,16 @@ function downloadString(text, fileType, fileName) {
     setTimeout(function() { URL.revokeObjectURL(a.href) }, 1500)
 }
 
-let url,
-    killFeed = [],
+let killFeed = [],
     gasTimer = [0, 0, 0],
     isNotInGame = true,
-    outputObj = {}
+    outputObj = {},
+    startTime = Date.now()
 
-const nativeWebSocket = unsafeWindow.WebSocket
-unsafeWindow.WebSocket = function(...args) {
-    const socket = new nativeWebSocket(...args)
-    gasTimer = [0, 0, 0]
-    url = socket.url
-    return socket
-}
+document.getElementById('play-button-menu').onclick = function() {killFeed = []; startTime = Date.now()}
+document.getElementById('btn-start-team').onclick = function() {killFeed = []; startTime = Date.now()}
 
-let urlArray = []
 setInterval(() => {
-    urlArray.push(url.match(/play\?gameId=([0-9a-z]+)/)[1])
-    if (urlArray.length > 2) urlArray.shift()
-    if (urlArray[0] != urlArray[urlArray.length - 1]) {
-        killFeed = []
-        //console.log(`\n%c${urlArray[urlArray.length - 1]}`, "font-size: 24px;")
-    }
-
     if (document.getElementById("ui-gas-timer").innerHTML != "0:00") gasTimer.push(document.getElementById("ui-gas-timer").innerHTML)
     if (gasTimer.length > 3) gasTimer.shift()
     if (gasTimer[0] == gasTimer[2]) {
@@ -64,25 +50,36 @@ setInterval(() => {
             console.log(obj)
             console.table(obj)
 
-            outputObj.kill = {}
-            outputObj.damageDealt = {}
+            outputObj.player = {}
             outputObj.killfeed = killFeed
             outputObj.stats = obj
 
             obj.forEach((x, xi) => {
                 if (xi == 0) return
-                let i = 1
+                /*let i = 1
                 let player = x[1],
                     p = player
-                while (Object.keys(outputObj.damageDealt).includes(player)) {
+                /*while (Object.keys(outputObj.damageDealt).includes(player)) {
                     player = `${p} (clone${i})`
                     i++
+                }*/
+
+                let player = x[1]
+                let regex = /^(?<p1>.+?) (?<action>killed|finally killed|crushed|knocked out) (?<p2>.+?)(?<weapon> with .+)?$/
+                let thisPlayerMatch = outputObj.killfeed.filter(j => regex.test(j)).map(j => j.match(regex).groups)
+                outputObj.player[player] = {
+                    "Damage Dealt": x[3],
+                    "Opponents Knocked": thisPlayerMatch.filter(j => j.p1 == player && j.p1 != j.p2 && ["knocked out"].includes(j.action)).length,
+                    "Opponents Killed": x[2],
+                    "Damage Taken": x[4],
+                    "Times Knocked": thisPlayerMatch.filter(j => j.p2 == player && ["knocked out"].includes(j.action)).length,
+                    "Times Killed" : thisPlayerMatch.filter(j => j.p2 == player && ["killed", "finally killed", "crushed"].includes(j.action)).length
                 }
-                outputObj.kill[player] = x[2]
-                outputObj.damageDealt[player] = x[3]
             })
 
-            downloadString(JSON.stringify(outputObj, null, 4), "data:text/json;charset=utf-8,", `${urlArray[urlArray.length - 1]}.json`)
+
+
+            downloadString(JSON.stringify(outputObj, null, 4), "data:text/json;charset=utf-8,", `${startTime}.json`)
         }
         isNotInGame = true
     }
@@ -94,7 +91,4 @@ setInterval(() => {
         if (x.innerHTML != "") temp.unshift(x.innerHTML)
     })
     killFeed = merge(killFeed, temp)
-    /*killFeed.filter(x => !temp.includes(x)).forEach(x => {
-        console.log(x)
-    })*/
 }, 1000)
